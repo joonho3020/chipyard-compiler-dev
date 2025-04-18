@@ -19,7 +19,8 @@ HELP_COMPILATION_VARIABLES += \
 "   ENABLE_YOSYS_FLOW         = if set, add compilation flags to enable the vlsi flow for yosys(tutorial flow)" \
 "   EXTRA_CHISEL_OPTIONS      = additional options to pass to the Chisel compiler" \
 "   MFC_BASE_LOWERING_OPTIONS = override lowering options to pass to the MLIR FIRRTL compiler" \
-"   ASPECTS                   = comma separated list of Chisel aspect flows to run (e.x. chipyard.upf.ChipTopUPFAspect)"
+"   ASPECTS                   = comma separated list of Chisel aspect flows to run (e.x. chipyard.upf.ChipTopUPFAspect)" \
+"   USE_CUSTOM_FIRRTL        = if set to 1, use custom compiler instead of vanilla FIRRTL"
 
 EXTRA_GENERATOR_REQS ?= $(BOOTROM_TARGETS)
 EXTRA_SIM_CXXFLAGS   ?=
@@ -137,6 +138,19 @@ $(FIRRTL_FILE) $(ANNO_FILE) $(CHISEL_LOG_FILE) &: $(GENERATOR_CLASSPATH) $(EXTRA
 		$(ASPECT_ARGS) \
 		$(EXTRA_CHISEL_OPTIONS)) | tee $(CHISEL_LOG_FILE))
 
+$(CUSTOM_COMPILER_FIRRTL_FILE) : $(FIRRTL_FILE)
+	(set -o pipefail && \
+		cd /scratch/joonho.whangbo/coding/ripple-ir && \
+		cargo run --release -- \
+			--input $(FIRRTL_FILE) \
+			--output $(CUSTOM_COMPILER_FIRRTL_FILE))
+
+# Use custom compiler by default unless USE_CUSTOM_FIRRTL=1 is specified
+USE_CUSTOM_FIRRTL ?= 0
+
+# Select which FIRRTL file to use based on USE_CUSTOM_FIRRTL
+SELECTED_FIRRTL_FILE := $(if $(filter 1,$(USE_CUSTOM_FIRRTL)),$(CUSTOM_COMPILER_FIRRTL_FILE),$(FIRRTL_FILE))
+
 define mfc_extra_anno_contents
 [
 	{
@@ -160,7 +174,7 @@ $(FINAL_ANNO_FILE) $(MFC_EXTRA_ANNO_FILE) &: $(ANNO_FILE)
 	jq -s '[.[][]]' $(ANNO_FILE) $(MFC_EXTRA_ANNO_FILE) > $(FINAL_ANNO_FILE)
 
 .PHONY: firrtl
-firrtl: $(FIRRTL_FILE) $(FINAL_ANNO_FILE)
+firrtl: $(SELECTED_FIRRTL_FILE) $(FINAL_ANNO_FILE)
 
 #########################################################################################
 # create verilog files rules and variables
@@ -186,7 +200,7 @@ else
 	echo "$(MFC_BASE_LOWERING_OPTIONS),disallowPackedArrays" > $@
 endif
 
-$(SFC_MFC_TARGETS) &: $(FIRRTL_FILE) $(FINAL_ANNO_FILE) $(MFC_LOWERING_OPTIONS)
+$(SFC_MFC_TARGETS) &: $(SELECTED_FIRRTL_FILE) $(FINAL_ANNO_FILE) $(MFC_LOWERING_OPTIONS)
 	rm -rf $(GEN_COLLATERAL_DIR)
 	(set -o pipefail && firtool \
 		--format=fir \
@@ -202,7 +216,7 @@ $(SFC_MFC_TARGETS) &: $(FIRRTL_FILE) $(FINAL_ANNO_FILE) $(MFC_LOWERING_OPTIONS)
 		--annotation-file=$(FINAL_ANNO_FILE) \
 		--split-verilog \
 		-o $(GEN_COLLATERAL_DIR) \
-		$(FIRRTL_FILE) |& tee $(FIRTOOL_LOG_FILE))
+		$(SELECTED_FIRRTL_FILE) |& tee $(FIRTOOL_LOG_FILE))
 	$(SED) -i 's/.*/& /' $(MFC_SMEMS_CONF) # need trailing space for SFC macrocompiler
 	touch $(MFC_BB_MODS_FILELIST) # if there are no BB's then the file might not be generated, instead always generate it
 # DOC include end: FirrtlCompiler
