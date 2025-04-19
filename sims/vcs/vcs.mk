@@ -1,13 +1,13 @@
 HELP_COMPILATION_VARIABLES += \
-"   USE_VPD                = set to '1' to build VCS simulator to emit VPD instead of FSDB."
+"   USE_VCD                = set to '1' to build VCS simulator to emit VCD instead of FSDB."
 
 HELP_SIMULATION_VARIABLES += \
-"   USE_VPD                = set to '1' to run VCS simulator emitting VPD instead of FSDB."
+"   USE_VCD                = set to '1' to run VCS simulator emitting VCD instead of FSDB."
 
-ifndef USE_VPD
+ifndef USE_VCD
 get_waveform_flag=+fsdbfile=$(1).fsdb
 else
-get_waveform_flag=+vcdplusfile=$(1).vpd
+get_waveform_flag=+vcdfile=$(1).vcd
 endif
 
 # If ntb_random_seed unspecified, vcs uses 1 as constant seed.
@@ -58,6 +58,6 @@ VCS_NONCC_OPTS = \
 VCS_PREPROC_DEFINES = \
 	+define+VCS
 
-ifndef USE_VPD
+ifndef USE_VCD
 VCS_PREPROC_DEFINES += +define+FSDB
 endif

@@ -77,11 +77,15 @@ $(sim_debug): $(sim_common_files) $(dramsim_lib) $(EXTRA_SIM_REQS)
 	+define+DEBUG -debug_access+all -kdb -lca
 
 #########################################################################################
-# create vcs vpd/fsdb rules
+# create vcs vpd/fsdb/vcd rules
 #########################################################################################
+.PRECIOUS: $(output_dir)/%.vcd %.vcd
+$(output_dir)/%.vcd: $(output_dir)/% $(sim_debug)
+	(set -o pipefail && $(sim_debug) $(PERMISSIVE_ON) $(SIM_FLAGS) $(EXTRA_SIM_FLAGS) $(SEED_FLAG) $(VERBOSE_FLAGS) +vcdfile=$@ $(PERMISSIVE_OFF) $< </dev/null 2> >(spike-dasm > $<.out) | tee $<.log)
+
 .PRECIOUS: $(output_dir)/%.vpd %.vpd
 $(output_dir)/%.vpd: $(output_dir)/% $(sim_debug)
-	(set -o pipefail && $(sim_debug) $(PERMISSIVE_ON) $(SIM_FLAGS) $(EXTRA_SIM_FLAGS) $(SEED_FLAG) $(VERBOSE_FLAGS) +vcdplusfile=$@ $(PERMISSIVE_OFF) $< </dev/null 2> >(spike-dasm > $<.out) | tee $<.log)
+	(set -o pipefail && $(sim_debug) $(PERMISSIVE_ON) $(SIM_FLAGS) $(EXTRA_SIM_FLAGS) $(SEED_FLAG) $(VERBOSE_FLAGS) +vcdfile=$@ $(PERMISSIVE_OFF) $< </dev/null 2> >(spike-dasm > $<.out) | tee $<.log)
 
 .PRECIOUS: $(output_dir)/%.fsdb %.fsdb
 $(output_dir)/%.fsdb: $(output_dir)/% $(sim_debug)
