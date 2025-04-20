@@ -1,5 +1,27 @@
 [group: 'run']
-run_sim:
+run_diff_digitaltop:
+  vcddiff \
+    --vcd1 hello.golden.vcd \
+    --vcd2 hello.impl.vcd \
+    --clock TestDriver.testHarness.chiptop0.system.auto_chipyard_prcictrl_domain_reset_setter_clock_in_member_allClocks_uncore_clock \
+    --reset TestDriver.testHarness.chiptop0.system.auto_chipyard_prcictrl_domain_reset_setter_clock_in_member_allClocks_uncore_reset \
+    --scope TestDriver.testHarness.chiptop0.system \
+    --skip 200 \
+    --ignore-x | tee DEBUG
+
+[group: 'run']
+run_diff_core:
+  vcddiff \
+    --vcd1 hello.golden.vcd \
+    --vcd2 hello.impl.vcd \
+    --clock TestDriver.testHarness.chiptop0.system.tile_prci_domain.element_reset_domain_rockettile.core.clock \
+    --reset TestDriver.testHarness.chiptop0.system.tile_prci_domain.element_reset_domain_rockettile.core.reset \
+    --scope  TestDriver.testHarness.chiptop0.system.tile_prci_domain.element_reset_domain_rockettile.core \
+    --skip 200 \
+    --ignore-x | tee DEBUG
+
+[group: 'run']
+run_sim: clean
   make run-binary-debug CONFIG=RocketConfig BINARY=../../tests/hello.riscv USE_VCD=1
   mv output/chipyard.harness.TestHarness.RocketConfig/hello.vcd hello.golden.vcd
 
@@ -7,13 +29,7 @@ run_sim:
   mv output/chipyard.harness.TestHarness.RocketConfig/hello.vcd hello.impl.vcd
 
 [group: 'run']
-run_diff:
-  vcddiff \
-    --vcd1 hello.golden.vcd \
-    --vcd2 hello.impl.vcd \
-    --clock TestDriver.testHarness.chiptop0.system.auto_chipyard_prcictrl_domain_reset_setter_clock_in_member_allClocks_uncore_clock \
-    --reset TestDriver.testHarness.chiptop0.system.auto_chipyard_prcictrl_domain_reset_setter_clock_in_member_allClocks_uncore_reset \
-    --scope TestDriver.testHarness.chiptop0.system | tee DEBUG
+run: run_sim run_diff_digitaltop
 
 [group: 'clean']
 clean:
