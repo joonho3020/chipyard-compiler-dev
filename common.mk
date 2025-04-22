@@ -209,7 +209,6 @@ $(SFC_MFC_TARGETS) &: $(SELECTED_FIRRTL_FILE) $(FINAL_ANNO_FILE) $(MFC_LOWERING_
 		--warn-on-unprocessed-annotations \
 		--disable-annotation-classless \
 		--disable-annotation-unknown \
-		--disable-all-randomization \
 		--mlir-timing \
 		--lowering-options=$(shell cat $(MFC_LOWERING_OPTIONS)) \
 		--repl-seq-mem \
