@@ -1,3 +1,8 @@
+config := "LargeBoomV3Config"
+
+
+
+
 [group: 'run']
 run_diff_digitaltop:
   vcddiff \
@@ -14,19 +19,19 @@ run_diff_core:
   vcddiff \
     --vcd1 hello.golden.vcd \
     --vcd2 hello.impl.vcd \
-    --clock TestDriver.testHarness.chiptop0.system.tile_prci_domain.element_reset_domain_rockettile.core.clock \
-    --reset TestDriver.testHarness.chiptop0.system.tile_prci_domain.element_reset_domain_rockettile.core.reset \
-    --scope  TestDriver.testHarness.chiptop0.system.tile_prci_domain.element_reset_domain_rockettile.core \
+    --clock TestDriver.testHarness.chiptop0.system.tile_prci_domain.element_reset_domain_boomtile.core.clock \
+    --reset TestDriver.testHarness.chiptop0.system.tile_prci_domain.element_reset_domain_boomtile.core.reset \
+    --scope  TestDriver.testHarness.chiptop0.system.tile_prci_domain.element_reset_domain_boomtile.core \
     --skip 200 \
-    --ignore-x | tee DEBUG
+    --ignore-x | tee DEBUG-DIFF-CORE
 
 [group: 'run']
 run_sim: clean
-  make run-binary-debug CONFIG=RocketConfig BINARY=../../tests/hello.riscv USE_VCD=1
-  mv output/chipyard.harness.TestHarness.RocketConfig/hello.vcd hello.golden.vcd
+  make run-binary-debug CONFIG={{config}} BINARY=../../tests/hello.riscv USE_VCD=1
+  mv output/chipyard.harness.TestHarness.{{config}}/hello.vcd hello.golden.vcd
 
-  make run-binary-debug CONFIG=RocketConfig BINARY=../../tests/hello.riscv USE_VCD=1 USE_CUSTOM_FIRRTL=1
-  mv output/chipyard.harness.TestHarness.RocketConfig/hello.vcd hello.impl.vcd
+  make run-binary-debug CONFIG={{config}} BINARY=../../tests/hello.riscv USE_VCD=1 USE_CUSTOM_FIRRTL=1
+  mv output/chipyard.harness.TestHarness.{{config}}/hello.vcd hello.impl.vcd
 
 [group: 'run']
 run: run_sim run_diff_digitaltop
