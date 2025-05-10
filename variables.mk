@@ -150,6 +150,16 @@ ifeq ($(SUB_PROJECT),tensor)
 	TB                ?= TestDriver
 	TOP               ?= UnitTestSuite
 endif
+ifeq ($(SUB_PROJECT),firechip)
+	SBT_PROJECT       ?= firechip
+	TB                ?= TestDriver
+	MODEL             ?= FireSim
+	MODEL_PACKAGE     ?= firechip.chip
+	CONFIG            ?= FireSimRocketConfig
+	CONFIG_PACKAGE    ?= firechip.chip
+	GENERATOR_PACKAGE ?= firechip.chip
+	TOP               ?= FireSim
+endif
 
 
 #########################################################################################
