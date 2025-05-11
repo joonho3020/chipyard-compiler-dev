@@ -352,3 +352,9 @@ class FireSimLargeBoomSV39CospikeConfig extends Config(
   new WithFireSimConfigTweaks++
   new freechips.rocketchip.rocket.WithSV39 ++
   new chipyard.LargeBoomV3Config)
+
+class FireSimQuadLargeBoomV3Config extends Config(
+  new WithDefaultFireSimBridges ++
+  new WithFireSimConfigTweaks ++
+  new boom.v3.common.WithNLargeBooms(4) ++
+  new chipyard.config.AbstractConfig)
